@@ -1,0 +1,49 @@
+$ ts-node debug-runner.ts --input fixtures/failing_case.json
+Running input across 3 prompt versions...
+Input: "Patient experienced some issues after the last dose."
+
+──────────────────────────────────────────────────────────────
+[v1.2.1]  prompt hash: abc1234
+  ae_term:    null
+  severity:   null
+  onset_date: null
+  confidence: 0.42
+  status:     approved            <-- WRONG: should be requires_review
+  reason:     null
+
+  ROOT CAUSE: PROHIBITED clause missing from v1.2.1.
+  Model defaulted to 'approved' with null fields instead of escalating.
+  Category: PROMPT_DESIGN
+
+──────────────────────────────────────────────────────────────
+[v1.2.2]  prompt hash: def5678
+  ae_term:    "adverse reaction"
+  severity:   null
+  onset_date: null
+  confidence: 0.68
+  status:     requires_review     <-- correct
+  reason:     "Note is ambiguous — 'some issues' does not identify a specific AE term.
+               No onset date provided. Severity not stated."
+
+──────────────────────────────────────────────────────────────
+[v1.2.3]  prompt hash: ghi9012
+  ae_term:    null
+  severity:   null
+  onset_date: null
+  confidence: 0.61
+  status:     requires_review     <-- correct
+  reason:     "Insufficient information to extract AE term with confidence.
+               'Some issues' is not a specific adverse event. Note requires
+               clinical review before data entry."
+
+──────────────────────────────────────────────────────────────
+SUMMARY
+  v1.2.1: FAIL — approved null fields (missing PROHIBITED clause)
+  v1.2.2: PASS — escalated correctly, AE term inferred (acceptable)
+  v1.2.3: PASS — escalated correctly, no fabrication (preferred)
+
+Root cause logged: PROMPT_DESIGN
+Fix applied:       Added PROHIBITED clause in v1.2.2
+Recommended:       Deploy v1.2.3 (most conservative, highest GxP safety margin)
+
+Acceptance test result: PASS on v1.2.2 and v1.2.3

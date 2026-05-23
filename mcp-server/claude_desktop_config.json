@@ -1,0 +1,28 @@
+{
+  "_comment": "Add the clinical-etmf block to your existing mcpServers config in Claude Desktop.",
+  "_instructions": [
+    "1. Find your Claude Desktop config file:",
+    "   macOS: ~/Library/Application Support/Claude/claude_desktop_config.json",
+    "   Windows: %APPDATA%\\Claude\\claude_desktop_config.json",
+    "",
+    "2. Replace /absolute/path/to below with the real path to this repo on your machine.",
+    "   Example: /Users/yourname/projects/clinical-agent-platform/mcp-server/src/etmf-server.js",
+    "",
+    "3. Run: cd mcp-server && npm install",
+    "",
+    "4. Restart Claude Desktop completely.",
+    "",
+    "5. Test with this prompt in Claude Desktop:",
+    "   'List all documents for study ABC-001'",
+    "   'Retrieve the protocol document for study ABC-001'",
+    "   'What is the approval status of document tmf_001?'",
+    "",
+    "6. Open Claude Desktop → Settings → Developer to see tool calls in the MCP inspector."
+  ],
+  "mcpServers": {
+    "clinical-etmf": {
+      "command": "node",
+      "args": ["/absolute/path/to/clinical-agent-platform/mcp-server/src/etmf-server.js"]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "clinical-agent-worker",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/poller.ts",
+    "build": "tsc",
+    "start": "node dist/poller.js"
+  },
+  "dependencies": {
+    "node-cron": "^3.0.3",
+    "pg": "^8.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.11.0",
+    "@types/node-cron": "^3.0.0",
+    "typescript": "^5.3.0",
+    "ts-node-dev": "^2.0.0"
+  }
+}
