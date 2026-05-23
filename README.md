@@ -1,65 +1,53 @@
-# Medable Interview Demo — Clinical Agent Platform
+# Clinical Agent Platform
 
-A working full-stack demo covering all three interview rounds.
-Run the entire stack with one command.
+Full-stack agentic AI platform for regulated clinical trial deployments,
+built to GxP quality standards with Human-in-the-Loop oversight,
+append-only audit trails, and versioned prompt engineering.
+
+## What this demonstrates
+
+| Capability | Location |
+|---|---|
+| GxP prompt engineering — versioned, auditable, tested | `GxP_prompts/` |
+| HITL confidence gate — per-field thresholds, audit log | `api/src/agent.ts` |
+| Postgres audit trail — INSERT only, 21 CFR Part 11 | `db/migrations/001_init.sql` |
+| MCP connector — eTMF tool integration for Claude Desktop | `mcp-server/` |
+| Acceptance test suite — 16 tests including adversarial GxP gate | `tests/` |
+| Reusable pattern library — HITL confidence gate | `patterns/` |
+| Full Docker Compose stack — 4 services, health checks | `docker-compose.yml` |
 
 ## Quick start
 
 ```bash
-# 1. Copy env file and add your Anthropic API key
 cp .env.example .env
-
-# 2. Start all services
+# Add your Anthropic API key to .env
 docker-compose up --build
-
-# 3. Verify everything is healthy
-curl localhost:4000/health
-# → {"status":"ok","db":"connected","worker":"running"}
-
-# 4. Open the HITL reviewer UI
-open http://localhost:3000
+# API running at localhost:4000
+# HITL reviewer UI at localhost:3000
 ```
 
-## What is running
+## GxP prompt engineering
 
-| Service   | Port | Purpose                                      |
-|-----------|------|----------------------------------------------|
-| api       | 4000 | Fastify REST API — EDC polling, agent output, HITL queue |
-| frontend  | 3000 | React reviewer UI — approve/reject agent outputs |
-| db        | 5432 | Postgres — all tables including append-only audit_log |
-| worker    | —    | Background worker — polls EDC every 60s, processes queue |
+The `GxP_prompts/` folder contains versioned agent system prompts
+for clinical adverse event extraction, with test cases and changelog.
+Prompts are treated as software artifacts — version-controlled,
+tested against a golden dataset, and approved before deployment.
 
-## Demo scripts (run after docker-compose up)
+See [GxP_prompts/README.md](GxP_prompts/README.md) for full documentation.
 
-```bash
-# Seed the DB with sample agent runs (shows confidence scores)
-npm run seed --prefix api
+## Stack
 
-# Submit a test subject and trigger the HITL gate
-curl -X POST localhost:4000/subjects \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer demo-token" \
-  -d '{"subject_id":"SUB-001","note":"Patient reported headache onset 2026-05-01"}'
+Node.js · Fastify · React · Postgres · Docker ·
+Anthropic Claude API · Model Context Protocol (MCP) · Jest
 
-# See the HITL queue (low-confidence items awaiting review)
-curl localhost:4000/hitl/queue \
-  -H "Authorization: Bearer demo-token"
-```
+## Confidence threshold reference
 
-## Interview talking points per service
+| Field type | Threshold | Rationale |
+|---|---|---|
+| adverse_event | 0.92 | Patient safety |
+| protocol_dev | 0.95 | Regulatory consequence |
+| site_note | 0.70 | Informational only |
 
-### Round 1 — Engineering
-- `docker-compose.yml` — four services, health checks, named volumes, no hardcoded secrets
-- `api/src/server.ts` — Fastify with JWT middleware on every protected route
-- `api/src/poller.ts` — node-cron polling loop with exponential backoff retry
-- `db/migrations/` — numbered, sequential, append-only audit_log design
-- `api/src/audit.ts` — INSERT-only audit trail (no UPDATE, no DELETE) — 21 CFR Part 11
-
-### Round 2 — Agentic AI
-- `mcp-server/` — TypeScript MCP server, wire to Claude Desktop
-- `prompts/v1.2.3/ae_extractor.txt` — GxP-defensible prompt (ROLE/TASK/OUTPUT/UNCERTAINTY/PROHIBITED)
-- `api/src/agent.ts` — confidence scoring, HITL gate logic, threshold config
-
-### Round 3 — Quality
-- `tests/` — 16-test Jest suite (happy path, edge, adversarial, integration)
-- `patterns/hitl-confidence-gate/` — reusable pattern with README, implementation, tests
+Outputs below threshold route to the HITL review queue.
+A human reviewer must approve or reject before the record
+is committed to the EDC.
