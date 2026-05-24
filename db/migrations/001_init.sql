@@ -36,7 +36,7 @@ CREATE INDEX idx_agent_runs_status     ON agent_runs (status);
 CREATE INDEX idx_agent_runs_confidence ON agent_runs (confidence);
 CREATE INDEX idx_agent_runs_record     ON agent_runs (record_id);
 
--- HITL decisions — one row per human review action
+-- HITL decisions - one row per human review action
 CREATE TABLE hitl_decisions (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   run_id      UUID        NOT NULL REFERENCES agent_runs(id),
@@ -48,7 +48,7 @@ CREATE TABLE hitl_decisions (
 
 CREATE INDEX idx_hitl_decisions_run ON hitl_decisions (run_id);
 
--- Append-only audit log — satisfies 21 CFR Part 11
+-- Append-only audit log - satisfies 21 CFR Part 11
 -- No application code ever issues UPDATE or DELETE on this table.
 CREATE TABLE audit_log (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
