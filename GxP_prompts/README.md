@@ -53,6 +53,6 @@ table on every execution.
 | Version | Date | Status |
 |---|---|---|
 | v1.2.4 | 2026-05-23 | Current production version |
-| v1.2.3 | 2026-05-22 | Superseded — model behavior issue |
+| v1.2.3 | 2026-05-22 | Superseded - model behavior issue |
 
 See [CHANGELOG.md](CHANGELOG.md) for full details on each change.
