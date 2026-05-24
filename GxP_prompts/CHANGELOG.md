@@ -5,7 +5,7 @@ root cause, fix applied, and test results before version bump.
 
 ---
 
-## v1.2.4 — 2026-05-23
+## v1.2.4 - 2026-05-23
 
 **Change:** Strengthened output constraints and model selection.
 
