@@ -5,7 +5,7 @@
 A version-controlled library of agent system prompts for clinical adverse
 event extraction, built to GxP quality standards.
 
-Prompts in clinical AI deployments are treated as software artifacts — not
+Prompts in clinical AI deployments are treated as software artifacts - not
 configuration. They require change control, acceptance testing, and audit
 traceability before any deployment to a regulated environment.
 
