@@ -17,7 +17,7 @@ CREATE INDEX idx_source_records_subject ON source_records (subject_id);
 CREATE INDEX idx_source_records_system  ON source_records (system);
 CREATE INDEX idx_source_records_json    ON source_records USING GIN (raw_json);
 
--- One row per agent execution — never updated, only inserted
+-- One row per agent execution - never updated, only inserted
 CREATE TABLE agent_runs (
   id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   record_id            UUID         REFERENCES source_records(id),
