@@ -23,10 +23,10 @@ JSON object.
 **Root cause category:** MODEL_BEHAVIOR
 
 **Test results:**
-- Case 1 (clear note): confidence 0.96, status approved — PASS
-- Case 2 (ambiguous date): confidence 0.72, status requires_review — PASS
-- Case 3 (vague note): confidence 0.04, status requires_review — PASS
-- All outputs begin with { and contain no prose preamble — PASS
+- Case 1 (clear note): confidence 0.96, status approved - PASS
+- Case 2 (ambiguous date): confidence 0.72, status requires_review - PASS
+- Case 3 (vague note): confidence 0.04, status requires_review - PASS
+- All outputs begin with { and contain no prose preamble - PASS
 
 **Validated on:** claude-sonnet-4-5-20250929
 **Validated via:** Anthropic Console Workbench
