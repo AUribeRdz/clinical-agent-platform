@@ -30,7 +30,7 @@ docker-compose up --build
 
 The `GxP_prompts/` folder contains versioned agent system prompts
 for clinical adverse event extraction, with test cases and changelog.
-Prompts are treated as software artifacts — version-controlled,
+Prompts are treated as software artifacts - version-controlled,
 tested against a golden dataset, and approved before deployment.
 
 See [GxP_prompts/README.md](GxP_prompts/README.md) for full documentation.
