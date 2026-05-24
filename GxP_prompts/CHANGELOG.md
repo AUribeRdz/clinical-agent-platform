@@ -33,7 +33,7 @@ JSON object.
 
 ---
 
-## v1.2.3 — 2026-05-22
+## v1.2.3 - 2026-05-22
 
 **Change:** Initial prompt version. ROLE, TASK, OUTPUT, UNCERTAINTY,
 and PROHIBITED sections defined.
