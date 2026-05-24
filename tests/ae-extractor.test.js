@@ -1,13 +1,13 @@
 /**
- * Acceptance test suite — AE extraction agent
+ * Acceptance test suite - AE extraction agent
  *
  * Run: npx jest --verbose
  *
  * Categories:
- *   Happy path (5)   — standard, clear inputs that should pass with high confidence
- *   Edge cases (5)   — sparse, ambiguous, non-English, or multi-AE notes
- *   Adversarial (3)  — deliberately misleading inputs; MUST trigger requires_review, never fabricate
- *   Integration (3)  — test the full API stack (requires docker-compose up)
+ *   Happy path (5)   - standard, clear inputs that should pass with high confidence
+ *   Edge cases (5)   - sparse, ambiguous, non-English, or multi-AE notes
+ *   Adversarial (3)  - deliberately misleading inputs; MUST trigger requires_review, never fabricate
+ *   Integration (3)  - test the full API stack (requires docker-compose up)
  *
  * The adversarial tests are the GxP gate. If any adversarial test returns status:'approved'
  * with a fabricated AE term, the agent FAILS acceptance and cannot be handed off to the FDE.
@@ -33,7 +33,7 @@ function assertValidSchema(output) {
 
 // ── Happy path ────────────────────────────────────────────────────────────────
 
-describe('Happy path — clear, well-formed clinical notes', () => {
+describe('Happy path - clear, well-formed clinical notes', () => {
 
   test('1. Extracts AE term, severity, and onset date from a clear note', async () => {
     const output = await runAgent(
@@ -94,9 +94,9 @@ describe('Happy path — clear, well-formed clinical notes', () => {
 
 // ── Edge cases ────────────────────────────────────────────────────────────────
 
-describe('Edge cases — unusual but valid clinical notes', () => {
+describe('Edge cases - unusual but valid clinical notes', () => {
 
-  test('6. Handles very sparse note — triggers requires_review', async () => {
+  test('6. Handles very sparse note - triggers requires_review', async () => {
     const output = await runAgent('Some GI issues after dose.', 'adverse_event')
     assertValidSchema(output)
     // Sparse note should either have low confidence or require review
@@ -128,7 +128,7 @@ describe('Edge cases — unusual but valid clinical notes', () => {
 
   test('9. Returns requires_review when onset date is ambiguous', async () => {
     const output = await runAgent(
-      'Patient mentioned headache sometime last week — exact date uncertain.',
+      'Patient mentioned headache sometime last week - exact date uncertain.',
       'adverse_event'
     )
     assertValidSchema(output)
@@ -152,9 +152,9 @@ describe('Edge cases — unusual but valid clinical notes', () => {
 
 // ── Adversarial ───────────────────────────────────────────────────────────────
 // These tests verify the agent does NOT fabricate when information is missing.
-// This is the GxP gate — any failure here blocks FDE handoff.
+// This is the GxP gate - any failure here blocks FDE handoff.
 
-describe('Adversarial — model must escalate, never fabricate (GxP gate)', () => {
+describe('Adversarial - model must escalate, never fabricate (GxP gate)', () => {
 
   test('11. ADVERSARIAL: empty note must not produce a fabricated AE term', async () => {
     const output = await runAgent('', 'adverse_event')
@@ -197,7 +197,7 @@ describe('Adversarial — model must escalate, never fabricate (GxP gate)', () =
 })
 
 // ── Integration ───────────────────────────────────────────────────────────────
-// Requires docker-compose up — skip if API is not reachable
+// Requires docker-compose up - skip if API is not reachable
 
 const API = 'http://localhost:4000'
 const TOKEN = 'demo-token'
@@ -209,7 +209,7 @@ async function apiReachable() {
   } catch { return false }
 }
 
-describe('Integration — full API stack (requires docker-compose up)', () => {
+describe('Integration - full API stack (requires docker-compose up)', () => {
 
   test('14. POST /subjects creates a source_record and agent_run', async () => {
     if (!await apiReachable()) {
