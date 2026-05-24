@@ -8,13 +8,13 @@ append-only audit trails, and versioned prompt engineering.
 
 | Capability | Location |
 |---|---|
-| GxP prompt engineering — versioned, auditable, tested | `GxP_prompts/` |
-| HITL confidence gate — per-field thresholds, audit log | `api/src/agent.ts` |
-| Postgres audit trail — INSERT only, 21 CFR Part 11 | `db/migrations/001_init.sql` |
-| MCP connector — eTMF tool integration for Claude Desktop | `mcp-server/` |
-| Acceptance test suite — 16 tests including adversarial GxP gate | `tests/` |
-| Reusable pattern library — HITL confidence gate | `patterns/` |
-| Full Docker Compose stack — 4 services, health checks | `docker-compose.yml` |
+| GxP prompt engineering - versioned, auditable, tested | `GxP_prompts/` |
+| HITL confidence gate - per-field thresholds, audit log | `api/src/agent.ts` |
+| Postgres audit trail - INSERT only, 21 CFR Part 11 | `db/migrations/001_init.sql` |
+| MCP connector - eTMF tool integration for Claude Desktop | `mcp-server/` |
+| Acceptance test suite - 16 tests including adversarial GxP gate | `tests/` |
+| Reusable pattern library - HITL confidence gate | `patterns/` |
+| Full Docker Compose stack - 4 services, health checks | `docker-compose.yml` |
 
 ## Quick start
 
