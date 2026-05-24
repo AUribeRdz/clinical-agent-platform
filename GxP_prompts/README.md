@@ -33,7 +33,7 @@ v1.2.4 - validated on claude-sonnet-4-5-20250929
 
 | Field type | Threshold | Rationale |
 |---|---|---|
-| adverse_event | 0.92 | Patient safety — high bar |
+| adverse_event | 0.92 | Patient safety - high bar |
 | protocol_dev | 0.95 | Regulatory consequence |
 | site_note | 0.70 | Informational only |
 
