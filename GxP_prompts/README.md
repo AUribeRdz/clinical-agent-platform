@@ -14,12 +14,12 @@ traceability before any deployment to a regulated environment.
 Every agent run in a clinical pipeline stores the git commit hash of the
 active prompt file alongside the output, confidence score, and reviewer
 decision. This means an auditor can reconstruct exactly what instructions
-the agent was operating under at any point in time — a requirement under
+the agent was operating under at any point in time - a requirement under
 21 CFR Part 11 and GCP guidelines.
 
 ## Current production version
 
-v1.2.4 — validated on claude-sonnet-4-5-20250929
+v1.2.4 - validated on claude-sonnet-4-5-20250929
 
 ## How to reproduce these results
 
