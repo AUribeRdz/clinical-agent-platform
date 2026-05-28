@@ -6,14 +6,13 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const EDC_URL = process.env.EDC_MOCK_URL ?? 'http://api:4000/mock-edc'
 const INTERVAL = parseInt(process.env.POLL_INTERVAL_SECONDS ?? '60')
 
-// Exponential backoff helper
 function delay(ms: number) { return new Promise(r => setTimeout(r, ms)) }
 
-async function fetchWithRetry(url: string, maxRetries = 3): Promise<Response> {
+async function fetchWithRetry(url: string, maxRetries = 3): Promise<any> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const res = await fetch(url)
-      if (res.ok) return res
+      if (res.ok) return res.json()
       throw new Error(`HTTP ${res.status}`)
     } catch (err) {
       if (attempt === maxRetries) throw err
@@ -35,8 +34,8 @@ async function writeAuditLog(tableName: string, rowId: string, action: string, a
 async function pollEDC() {
   console.log(`[worker] Polling EDC at ${new Date().toISOString()}`)
   try {
-    const res = await fetchWithRetry(EDC_URL)
-    const { records } = await res.json() as { records: Array<{ subject_id: string; note: string; visit: string }> }
+    const data = await fetchWithRetry(EDC_URL) as { records: Array<{ subject_id: string; note: string; visit: string }> }
+    const records = data.records ?? []
 
     for (const record of records) {
       const inputHash = crypto.createHash('sha256')
@@ -44,14 +43,12 @@ async function pollEDC() {
         .digest('hex')
         .slice(0, 64)
 
-      // Skip records we have already processed (idempotent polling)
       const { rows: existing } = await pool.query(
         'SELECT id FROM agent_runs WHERE input_hash = $1',
         [inputHash]
       )
       if (existing.length > 0) continue
 
-      // Persist the raw source record
       const { rows: [src] } = await pool.query(
         `INSERT INTO source_records (system, subject_id, raw_json)
          VALUES ('mock_edc', $1, $2) RETURNING id`,
@@ -66,10 +63,16 @@ async function pollEDC() {
   }
 }
 
-// Run immediately on startup, then on schedule
-await pollEDC()
+async function main() {
+  console.log(`[worker] HITL queue worker started. Polling EDC every ${INTERVAL}s.`)
+  await pollEDC()
+  const cronExpr = `*/${INTERVAL} * * * * *`
+  cron.schedule(cronExpr, () => {
+    pollEDC().catch(err => console.error('[worker] Poll error:', err))
+  })
+}
 
-const cronExpr = `*/${INTERVAL} * * * * *`   // every N seconds (for demo — use minutes in production)
-cron.schedule(cronExpr, pollEDC)
-
-console.log(`[worker] HITL queue worker started. Polling EDC every ${INTERVAL}s.`)
+main().catch(err => {
+  console.error('[worker] Fatal error:', err)
+  process.exit(1)
+})
