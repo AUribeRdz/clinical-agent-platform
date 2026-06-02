@@ -4,6 +4,15 @@ Full-stack agentic AI platform for regulated clinical trial deployments,
 built to GxP quality standards with Human-in-the-Loop oversight,
 append-only audit trails, and versioned prompt engineering.
 
+# Clinical agent platform A full-stack agentic AI platform designed for regulated industries (pharma, biotech, clinical trials) that require FDA 21 CFR Part 11 compliance — demonstrating how to build AI systems with governance, auditability, and responsible AI at the core. 
+
+## Core components - GxP-compliant prompt engineering with templated, versioned system prompts - Human-in-the-loop (HITL) confidence gate — agent pauses when uncertainty exceeds threshold - Postgres audit trail — every LLM call logged with input, output, model version, and timestamp - MCP server connectivity for external tool integration 
+
+## Why this matters beyond healthcare The same patterns — audit trails, HITL gates, versioned prompts, governance guardrails — are what every enterprise GenAI deployment needs. This platform is a blueprint for responsible AI in any production environment. 
+
+## Tech stack Python · LLM API · PostgreSQL · MCP protocol · FastAPI / async orchestration ## Skills demonstrated Agentic AI architecture · Responsible AI · Production monitoring · Prompt engineering · Human-in-the-loop design · Enterprise compliance
+
+
 ## What this demonstrates
 
 | Capability | Location |
