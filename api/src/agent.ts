@@ -5,24 +5,41 @@ import * as crypto from 'crypto'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// The prompt version hash is the git commit hash of the prompt file.
-// In demo mode we compute it from the file content instead.
-const PROMPT_PATH = path.join(__dirname, '../../prompts/v1.2.3/ae_extractor.txt')
+// Versioned prompts live in GxP_prompts/<version>/ae_extractor.txt.
+//   PROMPT_VERSION  which version to load (default: current production version)
+//   PROMPTS_DIR     where the GxP_prompts folder is (docker-compose mounts it into the container)
+// The value stored with every run is "<version>:<first 16 hex of SHA-256 of the file content>",
+// so an auditor can tell both which version ran and that the file was not edited in place.
+const PROMPTS_DIR = process.env.PROMPTS_DIR ?? path.join(__dirname, '../../GxP_prompts')
+const PROMPT_VERSION = process.env.PROMPT_VERSION ?? 'v1.2.4'
+const PROMPT_PATH = path.join(PROMPTS_DIR, PROMPT_VERSION, 'ae_extractor.txt')
+
+let cachedPrompt: { text: string; hash: string } | null = null
 
 function loadPrompt(): { text: string; hash: string } {
+  if (cachedPrompt) return cachedPrompt
+  let text: string
   try {
-    const text = fs.readFileSync(PROMPT_PATH, 'utf-8')
-    const hash = crypto.createHash('sha256').update(text).digest('hex').slice(0, 16)
-    return { text, hash }
+    text = fs.readFileSync(PROMPT_PATH, 'utf-8')
   } catch {
-    // Fallback if running outside Docker and the prompts folder is not mounted
-    const fallback = `ROLE: You are a clinical adverse event extraction agent.
-TASK: Extract adverse event information from the provided clinical note.
-OUTPUT: Respond ONLY as valid JSON with these fields: ae_term, severity, onset_date, confidence, field_type, status.
-UNCERTAINTY: If confidence is below 0.85, set status to "requires_review". Never guess.
-PROHIBITED: Do not infer, extrapolate, or fabricate any field value.`
-    return { text: fallback, hash: 'fallback-prompt' }
+    // Fail closed: in a GxP setting an unversioned prompt must never be used silently.
+    throw new Error(
+      `Prompt file not found or unreadable: ${PROMPT_PATH}. ` +
+      `Set PROMPTS_DIR / PROMPT_VERSION, or mount the GxP_prompts folder.`
+    )
   }
+  // Normalize line endings so the hash (and the prompt the model receives) are identical
+  // whether the file was checked out with LF (Linux, macOS) or CRLF (Windows autocrlf).
+  text = text.replace(/\r\n/g, '\n')
+  const sha = crypto.createHash('sha256').update(text).digest('hex').slice(0, 16)
+  cachedPrompt = { text, hash: `${PROMPT_VERSION}:${sha}` }
+  return cachedPrompt
+}
+
+/** Call once at startup so a missing prompt stops the API instead of failing on the first request. */
+export function initPrompt(): { version: string; hash: string } {
+  const { hash } = loadPrompt()
+  return { version: PROMPT_VERSION, hash }
 }
 
 export interface AgentOutput {

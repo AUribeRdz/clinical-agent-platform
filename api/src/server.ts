@@ -1,10 +1,11 @@
+import * as crypto from 'crypto'
 import Fastify from 'fastify'
 import fastifyJwt from '@fastify/jwt'
 import fastifyCors from '@fastify/cors'
 import { pool } from './db'
 import { writeAuditLog } from './audit'
 import { getThresholds } from './thresholds'
-import { runAgent } from './agent'
+import { runAgent, initPrompt } from './agent'
 
 const app = Fastify({ logger: true })
 
@@ -15,7 +16,21 @@ const mockEDCRecords = [
   { subject_id: 'SUB-004', note: 'Subject possibly missed dose — unclear from notes.', visit: 'V4' },
 ]
 
+// The demo bearer token is a convenience for local runs and the demo UI only.
+// It is disabled when NODE_ENV=production, where only signed JWTs are accepted.
+const DEMO_TOKEN_ENABLED = process.env.NODE_ENV !== 'production'
+
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    const secret = process.env.JWT_SECRET ?? ''
+    if (!secret || secret.startsWith('demo-')) {
+      throw new Error('JWT_SECRET must be set to a real secret when NODE_ENV=production')
+    }
+  }
+  const prompt = initPrompt()
+  app.log.info({ prompt_version: prompt.version, prompt_hash: prompt.hash }, 'GxP prompt loaded')
+  if (DEMO_TOKEN_ENABLED) app.log.warn('Demo bearer token is ENABLED (development only)')
+
   await app.register(fastifyCors, { origin: true })
 
   await app.register(fastifyJwt, {
@@ -27,7 +42,7 @@ async function main() {
     const key = `${request.method} ${request.routerPath ?? request.url}`
     if (open.some(r => key.startsWith(r))) return
     const header = request.headers.authorization ?? ''
-    if (header === 'Bearer demo-token') return
+    if (DEMO_TOKEN_ENABLED && header === 'Bearer demo-token') return
     try {
       await request.jwtVerify()
     } catch {
@@ -53,6 +68,7 @@ async function main() {
       [subject_id, JSON.stringify({ note, submitted_at: new Date().toISOString() })]
     )
     await writeAuditLog('source_records', record.id, 'INSERT', 'api')
+    const inputHash = crypto.createHash('sha256').update(note).digest('hex')
     const agentOutput = await runAgent(note, 'adverse_event')
     const thresholds = getThresholds()
     const threshold = thresholds[agentOutput.field_type ?? 'adverse_event'] ?? 0.90
@@ -60,9 +76,9 @@ async function main() {
     const { rows: [run] } = await pool.query(
       `INSERT INTO agent_runs
          (record_id, prompt_version_hash, input_hash, output_json, confidence, status, field_type, triggered_by)
-       VALUES ($1, $2, md5($3), $4, $5, $6, $7, $8)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, status, confidence`,
-      [record.id, agentOutput.prompt_version, note, JSON.stringify(agentOutput),
+      [record.id, agentOutput.prompt_version, inputHash, JSON.stringify(agentOutput),
        agentOutput.confidence, status, agentOutput.field_type, 'api']
     )
     await writeAuditLog('agent_runs', run.id, 'INSERT', 'api')

@@ -1,6 +1,8 @@
 -- Migration 001: initial schema
--- All tables use append-only inserts for GxP / 21 CFR Part 11 compliance.
--- No UPDATE or DELETE is ever issued on source_records, agent_runs, or audit_log.
+-- Insert-only tables: source_records, hitl_decisions, audit_log.
+-- agent_runs is insert-only except for one permitted transition: status moves from
+-- 'requires_review' to 'approved' or 'rejected' after a human decision. That decision is
+-- itself stored in hitl_decisions and audit_log. No DELETE is ever issued.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -17,11 +19,11 @@ CREATE INDEX idx_source_records_subject ON source_records (subject_id);
 CREATE INDEX idx_source_records_system  ON source_records (system);
 CREATE INDEX idx_source_records_json    ON source_records USING GIN (raw_json);
 
--- One row per agent execution - never updated, only inserted
+-- One row per agent execution. Only the status column changes, and only through the HITL decision.
 CREATE TABLE agent_runs (
   id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   record_id            UUID         REFERENCES source_records(id),
-  prompt_version_hash  VARCHAR(64)  NOT NULL,   -- git commit hash of the prompt file
+  prompt_version_hash  VARCHAR(64)  NOT NULL,   -- '<version>:<16 hex of SHA-256 of prompt file>', e.g. v1.2.4:0123abcd...
   input_hash           VARCHAR(64)  NOT NULL,   -- SHA-256 of the input payload
   output_json          JSONB        NOT NULL,
   confidence           NUMERIC(4,3) NOT NULL CHECK (confidence BETWEEN 0 AND 1),

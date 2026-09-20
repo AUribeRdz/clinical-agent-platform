@@ -12,8 +12,8 @@ INSERT INTO source_records (system, subject_id, raw_json) VALUES
 INSERT INTO agent_runs (record_id, prompt_version_hash, input_hash, output_json, confidence, status, field_type, triggered_by)
 SELECT
   id,
-  'abc1234def5678',
-  md5(raw_json::text),
+  'seed-data',
+  encode(sha256(convert_to(raw_json::text, 'UTF8')), 'hex'),
   '{"ae_term":"headache","severity":"mild","onset_date":"2026-05-01","confidence":0.96,"status":"approved"}',
   0.96,
   'approved',
@@ -25,8 +25,8 @@ FROM source_records WHERE subject_id = 'SUB-001';
 INSERT INTO agent_runs (record_id, prompt_version_hash, input_hash, output_json, confidence, status, field_type, triggered_by)
 SELECT
   id,
-  'abc1234def5678',
-  md5(raw_json::text),
+  'seed-data',
+  encode(sha256(convert_to(raw_json::text, 'UTF8')), 'hex'),
   '{"ae_term":"nausea","severity":"mild","onset_date":"2026-05-10","confidence":0.88,"status":"approved"}',
   0.88,
   'approved',
@@ -38,8 +38,8 @@ FROM source_records WHERE subject_id = 'SUB-002';
 INSERT INTO agent_runs (record_id, prompt_version_hash, input_hash, output_json, confidence, status, field_type, triggered_by)
 SELECT
   id,
-  'abc1234def5678',
-  md5(raw_json::text),
+  'seed-data',
+  encode(sha256(convert_to(raw_json::text, 'UTF8')), 'hex'),
   '{"ae_term":null,"severity":null,"onset_date":null,"confidence":0.71,"status":"requires_review","reason":"Ambiguous note — could not extract AE with sufficient confidence"}',
   0.71,
   'requires_review',
