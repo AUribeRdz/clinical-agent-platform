@@ -1,0 +1,2 @@
+# Keep controlled prompt files byte-identical on every OS (their hash is stored on every run)
+GxP_prompts/**/*.txt text eol=lf

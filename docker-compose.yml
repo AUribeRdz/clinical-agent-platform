@@ -30,6 +30,10 @@ services:
       CONFIDENCE_THRESHOLD_PROTOCOL_DEV: ${CONFIDENCE_THRESHOLD_PROTOCOL_DEV:-0.95}
       CONFIDENCE_THRESHOLD_SITE_NOTE: ${CONFIDENCE_THRESHOLD_SITE_NOTE:-0.70}
       NODE_ENV: ${NODE_ENV:-development}
+      PROMPTS_DIR: /app/GxP_prompts
+      PROMPT_VERSION: ${PROMPT_VERSION:-v1.2.4}
+    volumes:
+      - ./GxP_prompts:/app/GxP_prompts:ro
     depends_on:
       db:
         condition: service_healthy

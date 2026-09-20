@@ -11,9 +11,9 @@ traceability before any deployment to a regulated environment.
 
 ## Why version control matters here
 
-Every agent run in a clinical pipeline stores the git commit hash of the
-active prompt file alongside the output, confidence score, and reviewer
-decision. This means an auditor can reconstruct exactly what instructions
+Every agent run in a clinical pipeline stores the prompt version and a
+SHA-256 content hash of the active prompt file alongside the output,
+confidence score, and reviewer decision. This means an auditor can reconstruct exactly what instructions
 the agent was operating under at any point in time - a requirement under
 21 CFR Part 11 and GCP guidelines.
 
@@ -44,9 +44,12 @@ or reject with documented notes before the record is committed.
 ## Stack this connects to
 
 The prompt files in this folder are loaded at runtime by
-`api/src/agent.ts` in the main repository. The active prompt version
-hash is stored in the `prompt_version_hash` column of the `agent_runs`
-table on every execution.
+`api/src/agent.ts`. `PROMPT_VERSION` (default `v1.2.4`) selects the version
+and `PROMPTS_DIR` points at this folder; docker-compose mounts it read-only
+into the API container. If the file cannot be read the API refuses to start
+rather than falling back to an unversioned prompt. The value stored in the
+`prompt_version_hash` column of `agent_runs` on every execution has the form
+`<version>:<first 16 hex characters of the file's SHA-256>`.
 
 ## Version history
 

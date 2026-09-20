@@ -1,6 +1,5 @@
 import cron from 'node-cron'
 import { Pool } from 'pg'
-import * as crypto from 'crypto'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const EDC_URL = process.env.EDC_MOCK_URL ?? 'http://api:4000/mock-edc'
@@ -38,14 +37,12 @@ async function pollEDC() {
     const records = data.records ?? []
 
     for (const record of records) {
-      const inputHash = crypto.createHash('sha256')
-        .update(JSON.stringify(record))
-        .digest('hex')
-        .slice(0, 64)
-
+      // Skip records we have already ingested. This worker only writes source_records,
+      // so the check must look there (jsonb equality ignores key order and whitespace).
       const { rows: existing } = await pool.query(
-        'SELECT id FROM agent_runs WHERE input_hash = $1',
-        [inputHash]
+        `SELECT id FROM source_records
+          WHERE system = 'mock_edc' AND subject_id = $1 AND raw_json = $2::jsonb`,
+        [record.subject_id, JSON.stringify(record)]
       )
       if (existing.length > 0) continue
 
