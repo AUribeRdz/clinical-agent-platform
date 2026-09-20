@@ -209,13 +209,21 @@ async function apiReachable() {
   } catch { return false }
 }
 
+// Integration tests need the running stack. They are SKIPPED (shown as skipped, not passed)
+// unless you opt in:   docker-compose up -d   then   RUN_INTEGRATION=1 npm test
+// When opted in, an unreachable API is a failure, not a silent pass.
+const integration = process.env.RUN_INTEGRATION === '1' ? test : test.skip
+
+async function assertApiReachable() {
+  if (!await apiReachable()) {
+    throw new Error(`API not reachable at ${API}. Start it with: docker-compose up -d`)
+  }
+}
+
 describe('Integration - full API stack (requires docker-compose up)', () => {
 
-  test('14. POST /subjects creates a source_record and agent_run', async () => {
-    if (!await apiReachable()) {
-      console.warn('Skipping integration test — API not reachable. Run docker-compose up first.')
-      return
-    }
+  integration('14. POST /subjects creates a source_record and agent_run', async () => {
+    await assertApiReachable()
 
     const res = await fetch(`${API}/subjects`, {
       method: 'POST',
@@ -229,8 +237,8 @@ describe('Integration - full API stack (requires docker-compose up)', () => {
     expect(data).toHaveProperty('status')
   }, 20000)
 
-  test('15. Low-confidence run appears in GET /hitl/queue', async () => {
-    if (!await apiReachable()) return
+  integration('15. Low-confidence run appears in GET /hitl/queue', async () => {
+    await assertApiReachable()
 
     // Submit a sparse note that should trigger the HITL gate
     await fetch(`${API}/subjects`, {
@@ -247,15 +255,15 @@ describe('Integration - full API stack (requires docker-compose up)', () => {
     expect(Array.isArray(data.queue)).toBe(true)
   }, 20000)
 
-  test('16. Approve a queued run and verify it leaves the queue', async () => {
-    if (!await apiReachable()) return
+  integration('16. Approve a queued run and verify it leaves the queue', async () => {
+    await assertApiReachable()
 
     // Get the current queue
     const qRes = await fetch(`${API}/hitl/queue`, {
       headers: { Authorization: `Bearer ${TOKEN}` },
     })
     const { queue } = await qRes.json()
-    if (queue.length === 0) { console.warn('No items in queue — skipping decision test'); return }
+    expect(queue.length).toBeGreaterThan(0)
 
     const runId = queue[0].id
     const decRes = await fetch(`${API}/hitl/${runId}/decide`, {

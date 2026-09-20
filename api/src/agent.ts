@@ -56,6 +56,21 @@ export interface AgentOutput {
 export async function runAgent(note: string, fieldType: string): Promise<AgentOutput> {
   const { text: systemPrompt, hash: promptVersion } = loadPrompt()
 
+  // An empty or whitespace-only note has nothing to extract, and the API rejects empty
+  // messages. Fail safe: send it to human review without calling the model.
+  if (!note || !note.trim()) {
+    return {
+      ae_term:        null,
+      severity:       null,
+      onset_date:     null,
+      confidence:     0,
+      field_type:     fieldType,
+      status:         'requires_review',
+      reason:         'Empty clinical note - nothing to extract.',
+      prompt_version: promptVersion,
+    }
+  }
+
   const response = await client.messages.create({
     model: 'claude-sonnet-4-5-20250929',
     max_tokens: 512,
